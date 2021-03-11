@@ -91,24 +91,25 @@
             return jsonFormData;
         }
         const fetchService = new FetchService();
+
         async function submitEnquiryForm(e, form) {
             e.preventDefault();
 
             const submitButton = document.getElementById('enquiry-submit-button');
             submitButton.disabled = true;
             setTimeout(()=> submitButton.disabled = false, 2000);
+            grecaptcha.execute();
+        }
 
-            const jsonFormData = buildJsonFormData(form);
-
+        function sendEnquiry(token){
+            const jsonFormData = buildJsonFormData(document.getElementById('enquiry-form'));
+            grecaptcha.reset();
             const headers = buildHeaders();
-            const response = await fetchService.performPostHttpRequest(`https://api.staging.mycqinfo.com/v1/enquiry`, headers, jsonFormData); // Uses JSON Placeholder
-            console.log(response);
-            if(response)
-                    console.log(response);
-            else
-                alert(`An error occured.`);
+            const response = fetchService.performPostHttpRequest(`http://api.staging.mycqinfo.com/v1/enquiry`, headers, jsonFormData);
+            response.then(res => {alert(res.message);console.log(res)}).catch(err=>{console.log(err);alert('An error occured. Please try agian')});
         }
     </script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body class="min-vh-100 d-flex flex-column">
@@ -123,6 +124,11 @@
             <div class="form-group">
                 <label for="Email" class="sr-only">Email</label>
                 <input type="email" name="email" id="email" class="form-control" placeholder="email address">
+            </div>
+            <div class="g-recaptcha"
+                data-sitekey="6LcKvHoaAAAAAA8Bh-JzbsJWBqTYbLjx_5g82ngA"
+                data-callback="sendEnquiry"
+                data-size="invisible">
             </div>
             <button type="submit" class="btn btn-submit" id="enquiry-submit-button">Submit</button>
         </form>
